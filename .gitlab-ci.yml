@@ -1,0 +1,31 @@
+
+variables:
+  GIT_STRATEGY: clone
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+
+stages:
+  - test
+  - build
+
+test:
+  stage: test
+  image: node:12
+  script:
+    - npm ci --no-optional
+    - npm run test
+
+build:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: build
+  script:
+    - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+    - docker build -t $CONTAINER_RELEASE_IMAGE .
+    - docker push $CONTAINER_RELEASE_IMAGE
+  only:
+    - tags
+  tags:
+    - dind

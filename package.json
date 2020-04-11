@@ -1,0 +1,57 @@
+{
+  "name": "pcah-backend",
+  "version": "0.0.1",
+  "description": "Personal Cards Agains Humanity",
+  "main": "build/main.js",
+  "private": true,
+  "repository": "https://git.fluidware.it/pcah/pcah-backend.git",
+  "scripts": {
+    "build": "babel -D src -d build",
+    "build:dev": "babel -D --watch src --out-dir build",
+    "clean": "rm -rf build",
+    "coverage": "cross-env NODE_ENV=test nyc mocha tests/*.test.js",
+    "lint": "eslint src",
+    "preversion": "npm run lint && npm run test",
+    "lint:fix": "eslint --fix src",
+    "start:dev": "nodemon --watch src --exec babel-node ./src/main.js",
+    "start": "node ./build/main.js",
+    "test": "NODE_ENV=test mocha --recursive tests/*.test.js"
+  },
+  "author": "Michele <macno@authkeys.io> (macno)",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^6.2.0",
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.6.0",
+    "@babel/node": "^7.6.2",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/register": "^7.5.5",
+    "@istanbuljs/nyc-config-babel": "^2.1.1",
+    "babel-eslint": "^10.0.2",
+    "babel-plugin-istanbul": "^5.1.4",
+    "cross-env": "^5.2.0",
+    "eslint": "^6.0.1",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-config-standard": "^13.0.1",
+    "eslint-plugin-import": "^2.18.1",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "event-stream": "3.3.4",
+    "mocha": "^6.0.2",
+    "mock-http-server": "^1.4.0",
+    "nyc": "^14.1.1",
+    "prettier": "^1.18.2",
+    "sinon": "^7.4.2"
+  },
+  "optionalDependencies": {
+    "nodemon": "^1.19.0"
+  }
+}

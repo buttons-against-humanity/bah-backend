@@ -15,7 +15,7 @@
     "lint:fix": "eslint --fix src",
     "start:dev": "nodemon --watch src --exec babel-node ./src/main.js",
     "start": "node ./build/main.js",
-    "test": "NODE_ENV=test mocha --recursive tests/*.test.js"
+    "test": "echo test"
   },
   "author": "Michele <macno@authkeys.io> (macno)",
   "license": "UNLICENSED",

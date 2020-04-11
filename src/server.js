@@ -78,7 +78,13 @@ class PCAHServer {
           socket.emit('game:join_error', e.message);
         }
       });
-
+      socket.on('game:end', () => {
+        if (!checkSocketStatus()) {
+          return;
+        }
+        delete games[socket.pcah.game_uuid];
+        this.io.to(socket.pcah.game_uuid).emit('game:ended');
+      });
       socket.on('round:answer', answer => {
         if (!checkSocketStatus()) {
           return;

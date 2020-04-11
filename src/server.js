@@ -15,10 +15,21 @@ class PCAHServer {
 
   start() {
     this.setup();
+    this.gameCleaner = setInterval(() => {
+      Object.keys(games).forEach(game_uuid => {
+        if (Date.now() - games[game_uuid].last_touch > 3600000) {
+          delete games[game_uuid];
+        }
+      });
+    }, 60000);
     this.server.listen(Number(process.env.PORT) || 8080);
   }
 
-  async stop() {}
+  async stop() {
+    if (this.gameCleaner) {
+      clearInterval(this.gameCleaner);
+    }
+  }
 
   setup() {
     this.app.get('/', function(req, res) {
@@ -32,6 +43,9 @@ class PCAHServer {
 
     this.io.on('connection', socket => {
       const checkSocketStatus = () => {
+        if (socket.pcah) {
+          games[socket.pcah.game_uuid].last_event = Date.now();
+        }
         return !!socket.pcah;
       };
 

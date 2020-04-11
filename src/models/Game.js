@@ -2,7 +2,7 @@ import uuid from 'uuid';
 import { getDeck } from './Deck';
 import Player from './Player';
 
-const MAX_PLAYERS = 8;
+const MAX_PLAYERS = 80;
 
 const CARDS_FOR_PLAYER = 10;
 
@@ -29,12 +29,17 @@ class Game {
 
   current_answers = [];
 
+  rounds = 0;
+
+  last_touch;
+
   constructor(owner) {
     this.uuid = uuid.v4();
     this.status = GAME_STATUS.WAIT_FOR_PLAYER;
     this.deck = getDeck();
     this.owner = owner;
     this.players = [];
+    this.last_touch = Date.now();
   }
 
   addPlayer(player_name) {
@@ -72,6 +77,7 @@ class Game {
   }
 
   nextRound() {
+    this.rounds++;
     this.card_czar++;
     if (this.card_czar >= this.players.length) {
       this.card_czar = 0;
@@ -86,6 +92,7 @@ class Game {
     this.current_answers = [];
     const { uuid, name } = this.players[this.card_czar];
     return {
+      n: this.rounds,
       question: this.deck.questions[this.current_question],
       card_czar: {
         uuid,

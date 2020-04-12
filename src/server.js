@@ -74,18 +74,23 @@ class PCAHServer {
           .to(socket.pcah.game_uuid)
           .emit('player:left', games[socket.pcah.game_uuid].getPlayerByUUID(socket.pcah.player_uuid));
         try {
-          const owner_changed = games[socket.pcah.game_uuid].removePlayer(socket.pcah.player_uuid);
+          const { owner_changed, change_czar } = games[socket.pcah.game_uuid].removePlayer(socket.pcah.player_uuid);
           if (owner_changed) {
             this.io.to(socket.pcah.game_uuid).emit('game:owner_change', games[socket.pcah.game_uuid].owner);
           }
+          if (change_czar) {
+            this.io.to(socket.pcah.game_uuid).emit('game:czar_change', games[socket.pcah.game_uuid].owner);
+          }
           this.io.to(socket.pcah.game_uuid).emit('game:players', games[socket.pcah.game_uuid].getPlayers());
+          if (games[socket.pcah.game_uuid].current_answers.length === games[socket.pcah.game_uuid].players.length - 1) {
+            this.io.to(socket.pcah.game_uuid).emit('round:answers', games[socket.pcah.game_uuid].getAnswers());
+          }
         } catch (e) {
-          if (e.status_code === ERRORS.GAME_END) {
+          if (e.error_code === ERRORS.GAME_END) {
             onEndGame(socket.pcah.game_uuid);
           }
         }
       });
-
       socket.on('game:create', owner => {
         this.logger.info('New game by %s!', owner);
         const game = new Game();

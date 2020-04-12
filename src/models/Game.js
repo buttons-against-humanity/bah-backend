@@ -80,10 +80,13 @@ class Game {
 
   removePlayer(player_uuid) {
     let change_owner = false;
-    const players = this.players.filter(player => {
+    let change_czar = false;
+    const players = this.players.filter((player, i) => {
       if (player.uuid === player_uuid) {
+        if (i === this.card_czar) {
+          change_czar = true;
+        }
         if (this.owner.uuid === player_uuid) {
-          // Change owner
           change_owner = true;
         }
         return false;
@@ -95,11 +98,24 @@ class Game {
       error.error_code = ERRORS.GAME_END;
       throw error;
     }
+    if (this.current_answers.length > 0) {
+      this.current_answers = this.current_answers.filter(answer => answer.player_uuid !== player_uuid);
+    }
+    if (change_czar) {
+      this.setCzar();
+      const { uuid } = this.players[this.card_czar];
+      if (this.current_answers.length > 0) {
+        this.current_answers = this.current_answers.filter(answer => answer.player_uuid !== uuid);
+      }
+    }
     if (change_owner) {
       this.setOwner(players[0]);
     }
     this.players = players;
-    return change_owner;
+    return {
+      change_czar,
+      change_owner
+    };
   }
 
   start() {
@@ -108,12 +124,16 @@ class Game {
     this.current_question = -1;
   }
 
-  nextRound() {
-    this.rounds++;
+  setCzar() {
     this.card_czar++;
     if (this.card_czar >= this.players.length) {
       this.card_czar = 0;
     }
+  }
+
+  nextRound() {
+    this.rounds++;
+    this.setCzar();
     this.current_question++;
     const checkQuestion = () => {
       return this.deck.questions[this.current_question].numAnswers === 1;

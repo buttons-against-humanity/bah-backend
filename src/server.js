@@ -6,18 +6,28 @@ import Game from './models/Game';
 
 const games = {};
 
+const MAX_GAME_IDLE_TIME = Number(process.env.MAX_GAME_IDLE_TIME) || 3600000;
+
 class PCAHServer {
-  constructor() {
+  logger;
+
+  constructor(logger) {
     this.app = express();
     this.server = http.Server(this.app);
     this.io = socketio(this.server);
+    this.logger = logger;
   }
 
   start() {
     this.setup();
     this.gameCleaner = setInterval(() => {
       Object.keys(games).forEach(game_uuid => {
-        if (Date.now() - games[game_uuid].last_touch > 3600000) {
+        if (Date.now() - games[game_uuid].last_touch > MAX_GAME_IDLE_TIME) {
+          this.logger.info(
+            'Cleaning up game %s last used %s',
+            game_uuid,
+            new Date(games[game_uuid].last_touch).toISOString()
+          );
           delete games[game_uuid];
         }
       });
@@ -51,9 +61,9 @@ class PCAHServer {
 
       socket.emit('news', { hello: 'world' });
       socket.on('game:create', owner => {
-        console.log('New game by %s!', owner);
+        this.logger.info('New game by %s!', owner);
         const game = new Game(owner);
-        console.log('Game ready', game.uuid);
+        this.logger.info('Game ready', game.uuid);
         games[game.uuid] = game;
         socket.emit('game:created', game.uuid);
         const player = game.addPlayer(owner);
@@ -96,6 +106,7 @@ class PCAHServer {
         if (!checkSocketStatus()) {
           return;
         }
+        this.logger.info('Game ended', socket.pcah.game_uuid);
         delete games[socket.pcah.game_uuid];
         this.io.to(socket.pcah.game_uuid).emit('game:ended');
       });
@@ -112,7 +123,6 @@ class PCAHServer {
           this.io.to(socket.pcah.game_uuid).emit('round:answers', games[socket.pcah.game_uuid].getAnswers());
         }
       });
-
       socket.on('round:winner', answer => {
         if (!checkSocketStatus()) {
           return;

@@ -1,0 +1,30 @@
+version: "3"
+
+# Create a .env file, this is an example:
+# RESTART_MODE=unless-stopped
+# FQDN=pcah.example.com
+
+services:
+  be:
+    image: docker-registry.fluidware.it/pcah/pcah-backend:0.0.4
+    restart: ${RESTART_MODE}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.be.rule=Host(`${FQDN}`) && Path(`/socket.io/`)
+  fe:
+    image: docker-registry.fluidware.it/pcah/pcah-frontend:0.0.4
+    restart: ${RESTART_MODE}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.fe.rule=Host(`${FQDN}`)
+  traefik:
+    image: traefik:v2.2
+    restart: ${RESTART_MODE}
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"

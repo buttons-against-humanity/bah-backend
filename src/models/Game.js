@@ -162,7 +162,7 @@ class Game {
       if (player.uuid === player_uuid) {
         player.removeCards(answer);
         let cards_to_add = 1;
-        if (typeof answer.length !== 'undefined') {
+        if (answer && typeof answer.length !== 'undefined') {
           cards_to_add = answer.length;
         }
         const answers = this.deck.answers.splice(0, cards_to_add);
@@ -174,6 +174,12 @@ class Game {
   getAnswers() {
     const question = this.deck.questions[this.current_question];
     return this.current_answers.map(answer => {
+      if (!answer.answer) {
+        return {
+          player_uuid: answer.player_uuid,
+          text: false
+        };
+      }
       let text = question.text;
       if (text.indexOf('_') < 0) {
         text += `<strong>${answer.answer.text}</strong>`;

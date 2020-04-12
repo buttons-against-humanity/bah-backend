@@ -6,6 +6,8 @@ import Game, { ERRORS } from './models/Game';
 
 const games = {};
 
+const kicker = {};
+
 const MAX_GAME_IDLE_TIME = Number(process.env.MAX_GAME_IDLE_TIME) || 3600000;
 
 class PCAHServer {
@@ -60,35 +62,56 @@ class PCAHServer {
 
       const checkSocketStatus = () => {
         if (socket.pcah) {
-          games[socket.pcah.game_uuid].last_event = Date.now();
+          if (games[socket.pcah.game_uuid]) {
+            games[socket.pcah.game_uuid].last_event = Date.now();
+          } else {
+            return false;
+          }
         }
         return !!socket.pcah;
       };
 
-      socket.on('disconnect', () => {
-        if (!checkSocketStatus()) {
-          return;
-        }
-        this.logger.info('Player %s left', socket.pcah.player_uuid);
-        this.io
-          .to(socket.pcah.game_uuid)
-          .emit('player:left', games[socket.pcah.game_uuid].getPlayerByUUID(socket.pcah.player_uuid));
+      const disconnectPlayer = pcah => {
+        this.logger.info('Player %s left', pcah.player_uuid);
+        this.io.to(pcah.game_uuid).emit('player:left', games[pcah.game_uuid].getPlayerByUUID(pcah.player_uuid));
         try {
-          const { owner_changed, change_czar } = games[socket.pcah.game_uuid].removePlayer(socket.pcah.player_uuid);
+          const { owner_changed, change_czar } = games[pcah.game_uuid].removePlayer(pcah.player_uuid);
           if (owner_changed) {
-            this.io.to(socket.pcah.game_uuid).emit('game:owner_change', games[socket.pcah.game_uuid].owner);
+            this.io.to(pcah.game_uuid).emit('game:owner_change', games[pcah.game_uuid].owner);
           }
           if (change_czar) {
-            this.io.to(socket.pcah.game_uuid).emit('game:czar_change', games[socket.pcah.game_uuid].owner);
+            this.io.to(pcah.game_uuid).emit('game:czar_change', games[pcah.game_uuid].owner);
           }
-          this.io.to(socket.pcah.game_uuid).emit('game:players', games[socket.pcah.game_uuid].getPlayers());
-          if (games[socket.pcah.game_uuid].current_answers.length === games[socket.pcah.game_uuid].players.length - 1) {
-            this.io.to(socket.pcah.game_uuid).emit('round:answers', games[socket.pcah.game_uuid].getAnswers());
+          this.io.to(pcah.game_uuid).emit('game:players', games[pcah.game_uuid].getPlayers());
+          if (games[pcah.game_uuid].current_answers.length === games[pcah.game_uuid].players.length - 1) {
+            this.io.to(pcah.game_uuid).emit('round:answers', games[pcah.game_uuid].getAnswers());
           }
         } catch (e) {
           if (e.error_code === ERRORS.GAME_END) {
-            onEndGame(socket.pcah.game_uuid);
+            onEndGame(pcah.game_uuid);
           }
+        }
+      };
+
+      socket.on('disconnect', () => {
+        this.logger.debug('socket disconnects');
+        if (!checkSocketStatus()) {
+          return;
+        }
+        const { pcah } = socket;
+        kicker[pcah.player_uuid] = setTimeout(() => {
+          disconnectPlayer(pcah);
+        }, 1000);
+      });
+      socket.on('reconnect', () => {
+        this.logger.debug('socket reconnects');
+        if (!checkSocketStatus()) {
+          return;
+        }
+        const { pcah } = socket;
+        if (kicker[pcah.player_uuid]) {
+          clearTimeout(kicker[pcah.player_uuid]);
+          delete kicker[pcah.player_uuid];
         }
       });
       socket.on('game:create', owner => {
@@ -145,12 +168,14 @@ class PCAHServer {
         if (!checkSocketStatus()) {
           return;
         }
+        this.logger.debug('Got %s answer: %s', socket.pcah.player_uuid, answer);
         games[socket.pcah.game_uuid].addAnswer(socket.pcah.player_uuid, answer);
         this.io
           .to(socket.pcah.game_uuid)
           .emit('round:answers_count', games[socket.pcah.game_uuid].current_answers.length);
         socket.emit('player:update', games[socket.pcah.game_uuid].getFullPlayerByUUID(socket.pcah.player_uuid));
         if (games[socket.pcah.game_uuid].current_answers.length === games[socket.pcah.game_uuid].players.length - 1) {
+          this.logger.debug('Round end, answers', games[socket.pcah.game_uuid].getAnswers());
           this.io.to(socket.pcah.game_uuid).emit('round:answers', games[socket.pcah.game_uuid].getAnswers());
         }
       });
@@ -158,13 +183,23 @@ class PCAHServer {
         if (!checkSocketStatus()) {
           return;
         }
-        games[socket.pcah.game_uuid].addPoint(answer.player_uuid);
+        if (answer) {
+          games[socket.pcah.game_uuid].addPoint(answer.player_uuid);
+        }
+
         this.io.to(socket.pcah.game_uuid).emit('round:start');
         this.io.to(socket.pcah.game_uuid).emit('game:players', games[socket.pcah.game_uuid].getPlayers());
-        this.io.to(socket.pcah.game_uuid).emit('round:winner', {
-          text: answer.text,
-          player: games[socket.pcah.game_uuid].getPlayerByUUID(answer.player_uuid)
-        });
+        if (answer) {
+          this.io.to(socket.pcah.game_uuid).emit('round:winner', {
+            text: answer.text,
+            player: games[socket.pcah.game_uuid].getPlayerByUUID(answer.player_uuid)
+          });
+        } else {
+          this.io.to(socket.pcah.game_uuid).emit('round:winner', {
+            text: 'Round void, no one answered',
+            player: ''
+          });
+        }
       });
 
       socket.on('round:next', () => {

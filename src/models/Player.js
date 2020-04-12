@@ -22,7 +22,14 @@ class Player {
   }
 
   removeCards(cards) {
-    this.answers = this.answers.filter(card => {
+    const removeRandom = typeof cards === 'boolean';
+    const pos = removeRandom ? Math.floor(Math.random() * this.answers.length) : -1;
+    this.answers = this.answers.filter((card, i) => {
+      if (removeRandom) {
+        if (i === pos) {
+          return false;
+        }
+      }
       if (typeof cards.length === 'undefined') {
         return card.id !== cards.id;
       }

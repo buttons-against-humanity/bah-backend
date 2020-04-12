@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import socketio from 'socket.io';
 import packageJson from '../package.json';
-import Game from './models/Game';
+import Game, { ERRORS } from './models/Game';
 
 const games = {};
 
@@ -52,6 +52,12 @@ class PCAHServer {
     };
 
     this.io.on('connection', socket => {
+      const onEndGame = game_uuid => {
+        this.logger.info('Game ended', game_uuid);
+        delete games[game_uuid];
+        this.io.to(game_uuid).emit('game:ended');
+      };
+
       const checkSocketStatus = () => {
         if (socket.pcah) {
           games[socket.pcah.game_uuid].last_event = Date.now();
@@ -59,14 +65,35 @@ class PCAHServer {
         return !!socket.pcah;
       };
 
-      socket.emit('news', { hello: 'world' });
+      socket.on('disconnect', () => {
+        if (!checkSocketStatus()) {
+          return;
+        }
+        this.logger.info('Player %s left', socket.pcah.player_uuid);
+        this.io
+          .to(socket.pcah.game_uuid)
+          .emit('player:left', games[socket.pcah.game_uuid].getPlayerByUUID(socket.pcah.player_uuid));
+        try {
+          const owner_changed = games[socket.pcah.game_uuid].removePlayer(socket.pcah.player_uuid);
+          if (owner_changed) {
+            this.io.to(socket.pcah.game_uuid).emit('game:owner_change', games[socket.pcah.game_uuid].owner);
+          }
+          this.io.to(socket.pcah.game_uuid).emit('game:players', games[socket.pcah.game_uuid].getPlayers());
+        } catch (e) {
+          if (e.status_code === ERRORS.GAME_END) {
+            onEndGame(socket.pcah.game_uuid);
+          }
+        }
+      });
+
       socket.on('game:create', owner => {
         this.logger.info('New game by %s!', owner);
-        const game = new Game(owner);
+        const game = new Game();
         this.logger.info('Game ready', game.uuid);
         games[game.uuid] = game;
         socket.emit('game:created', game.uuid);
         const player = game.addPlayer(owner);
+        game.setOwner(player);
         socket.emit('game:joined', player);
         socket.join(game.uuid);
         socket.pcah = {
@@ -90,6 +117,7 @@ class PCAHServer {
         }
         try {
           const player = games[game_uuid].addPlayer(player_name);
+          this.logger.info('%s joined a game!', player_name);
           socket.emit('game:joined', player);
           socket.join(game_uuid);
           socket.pcah = {
@@ -106,9 +134,7 @@ class PCAHServer {
         if (!checkSocketStatus()) {
           return;
         }
-        this.logger.info('Game ended', socket.pcah.game_uuid);
-        delete games[socket.pcah.game_uuid];
-        this.io.to(socket.pcah.game_uuid).emit('game:ended');
+        onEndGame(socket.pcah.game_uuid);
       });
       socket.on('round:answer', answer => {
         if (!checkSocketStatus()) {

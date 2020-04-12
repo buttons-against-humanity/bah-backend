@@ -2,6 +2,7 @@ import uuid from 'uuid';
 import { getDeck } from './Deck';
 import Player from './Player';
 
+const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 80;
 
 const CARDS_FOR_PLAYER = 10;
@@ -10,6 +11,10 @@ const GAME_STATUS = {
   WAIT_FOR_PLAYER: 0,
   STARTED: 10,
   COMPLETED: 90
+};
+
+export const ERRORS = {
+  GAME_END: -1
 };
 
 class Game {
@@ -33,13 +38,16 @@ class Game {
 
   last_touch;
 
-  constructor(owner) {
+  constructor() {
     this.uuid = uuid.v4();
     this.status = GAME_STATUS.WAIT_FOR_PLAYER;
     this.deck = getDeck();
-    this.owner = owner;
     this.players = [];
     this.last_touch = Date.now();
+  }
+
+  setOwner(player) {
+    this.owner = player;
   }
 
   addPlayer(player_name) {
@@ -68,6 +76,30 @@ class Game {
 
   getFullPlayerByUUID(player_uuid) {
     return this.players.filter(player => player.uuid === player_uuid)[0];
+  }
+
+  removePlayer(player_uuid) {
+    let change_owner = false;
+    const players = this.players.filter(player => {
+      if (player.uuid === player_uuid) {
+        if (this.owner.uuid === player_uuid) {
+          // Change owner
+          change_owner = true;
+        }
+        return false;
+      }
+      return true;
+    });
+    if (this.status >= GAME_STATUS.STARTED && players.length < MIN_PLAYERS) {
+      const error = new Error('There are too few players! Game ends');
+      error.error_code = ERRORS.GAME_END;
+      throw error;
+    }
+    if (change_owner) {
+      this.setOwner(players[0]);
+    }
+    this.players = players;
+    return change_owner;
   }
 
   start() {

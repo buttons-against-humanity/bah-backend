@@ -9,10 +9,21 @@ class Player {
 
   points;
 
+  active;
+
   constructor(name) {
     this.uuid = uuid.v4();
     this.name = name;
     this.points = 0;
+    this.active = true;
+  }
+
+  isActive() {
+    return this.active;
+  }
+
+  setActive(active) {
+    this.active = active;
   }
 
   addCards(cards) {

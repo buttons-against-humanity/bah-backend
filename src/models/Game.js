@@ -63,8 +63,12 @@ class Game {
     return player;
   }
 
+  getActivePlayers() {
+    return this.players.filter(player => player.isActive());
+  }
+
   getPlayers() {
-    return this.players.map(player => {
+    return this.getActivePlayers().map(player => {
       const { uuid, name, points } = player;
       return { uuid, name, points };
     });
@@ -81,7 +85,7 @@ class Game {
   removePlayer(player_uuid) {
     let change_owner = false;
     let change_czar = false;
-    const players = this.players.filter((player, i) => {
+    this.players.forEach((player, i) => {
       if (player.uuid === player_uuid) {
         if (i === this.card_czar) {
           change_czar = true;
@@ -89,11 +93,10 @@ class Game {
         if (this.owner.uuid === player_uuid) {
           change_owner = true;
         }
-        return false;
+        player.setActive(false);
       }
-      return true;
     });
-    if (this.status >= GAME_STATUS.STARTED && players.length < MIN_PLAYERS) {
+    if (this.status >= GAME_STATUS.STARTED && this.getActivePlayers().length < MIN_PLAYERS) {
       const error = new Error('There are too few players! Game ends');
       error.error_code = ERRORS.GAME_END;
       throw error;
@@ -109,9 +112,8 @@ class Game {
       }
     }
     if (change_owner) {
-      this.setOwner(players[0]);
+      this.setOwner(this.getActivePlayers()[0]);
     }
-    this.players = players;
     return {
       change_czar,
       change_owner
@@ -126,7 +128,7 @@ class Game {
 
   setCzar() {
     this.card_czar++;
-    if (this.card_czar >= this.players.length) {
+    if (this.card_czar >= this.getActivePlayers().length) {
       this.card_czar = 0;
     }
   }
@@ -136,7 +138,7 @@ class Game {
     this.setCzar();
     this.current_question++;
     const checkQuestion = () => {
-      return this.deck.questions[this.current_question].numAnswers === 1;
+      return this.deck.questions[this.current_question].numAnswers < 2;
     };
     while (!checkQuestion()) {
       this.current_question++;
@@ -169,6 +171,10 @@ class Game {
         player.addCards(answers);
       }
     });
+  }
+
+  haveAllAnswers() {
+    return this.current_answers.length === this.players.filter(player => player.isActive()).length - 1;
   }
 
   getAnswers() {

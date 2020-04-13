@@ -9,7 +9,8 @@ let logger;
 const shutdown = function() {
   if (server) {
     logger.info('Shutting down server...');
-    return server.stop().finally(() => process.exit(0));
+    server.stop();
+    process.exit(0);
   } else {
     logger.info('Shutting down...');
     return process.exit(0);

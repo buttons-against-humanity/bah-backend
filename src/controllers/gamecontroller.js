@@ -52,7 +52,7 @@ class GameController {
     const checkSocketStatus = () => {
       if (socket.pcah) {
         if (games[socket.pcah.game_uuid]) {
-          games[socket.pcah.game_uuid].last_event = Date.now();
+          games[socket.pcah.game_uuid].last_touch = Date.now();
         } else {
           return false;
         }

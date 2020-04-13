@@ -1,6 +1,6 @@
 {
   "name": "pcah-backend",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Personal Cards Against Humanity",
   "main": "build/main.js",
   "private": true,

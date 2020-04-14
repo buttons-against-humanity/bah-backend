@@ -12,9 +12,13 @@ cards.forEach(card => {
   }
 });
 
-export const getDeck = function() {
+export const getDeck = function(expansions) {
   return {
-    answers: arrayShuffle(_answers.slice()),
-    questions: arrayShuffle(_questions.slice())
+    answers: arrayShuffle(
+      _answers.filter(answer => (expansions ? expansions.includes(answer.expansion) : true)).slice()
+    ),
+    questions: arrayShuffle(
+      _questions.filter(question => (expansions ? expansions.includes(question.expansion) : true)).slice()
+    )
   };
 };

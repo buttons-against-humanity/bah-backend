@@ -49,10 +49,10 @@ class Game {
 
   last_touch;
 
-  constructor() {
+  constructor(expansions = false) {
     this.uuid = uuid.v4();
     this.status = GAME_STATUS.WAIT_FOR_PLAYER;
-    this.deck = getDeck();
+    this.deck = getDeck(expansions);
     this.players = [];
     this.last_touch = Date.now();
   }

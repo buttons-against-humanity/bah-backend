@@ -1,7 +1,7 @@
 import uuid from 'uuid';
 import { getDeck } from './Deck';
 import Player from './Player';
-import {arrayShuffle} from "../utils/arrayUtils";
+import { arrayShuffle } from '../utils/arrayUtils';
 
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 80;

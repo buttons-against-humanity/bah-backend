@@ -1,6 +1,7 @@
 import uuid from 'uuid';
 import { getDeck } from './Deck';
 import Player from './Player';
+import {arrayShuffle} from "../utils/arrayUtils";
 
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 80;
@@ -189,6 +190,7 @@ class Game {
 
   getAnswers() {
     const question = this.deck.questions[this.current_question];
+    arrayShuffle(this.current_answers);
     return this.current_answers.map(answer => {
       if (!answer.answer) {
         return {

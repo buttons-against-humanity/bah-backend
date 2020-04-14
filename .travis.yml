@@ -2,6 +2,7 @@ os: linux
 language: minimal
 stages:
   - lint
+  - test
 
 jobs:
   include:
@@ -11,3 +12,9 @@ jobs:
       script:
         - npm ci
         - npm run lint
+    - stage: test
+      language: node_js
+      node_js: '12'
+      script:
+        - npm ci
+        - npm run test

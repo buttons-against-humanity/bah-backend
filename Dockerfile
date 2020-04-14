@@ -47,6 +47,6 @@ LABEL org.opencontainers.image.vendor="ButtonsAgainstHumanity" \
         org.opencontainers.image.source="https://github.com/buttons-against-humanity/bah-backend" \
         org.opencontainers.image.title="bah-backend" \
         org.opencontainers.image.description="Buttons Against Humanity Backend" \
-        org.opencontainers.image.version="0.2.2" \
+        org.opencontainers.image.version="0.2.3" \
         org.opencontainers.image.documentation="https://github.com/buttons-against-humanity/bah-backend" \
         org.opencontainers.image.licenses='Apache-2.0'

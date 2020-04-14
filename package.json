@@ -1,6 +1,6 @@
 {
   "name": "bah-backend",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Buttons Against Humanity",
   "main": "build/main.js",
   "private": true,

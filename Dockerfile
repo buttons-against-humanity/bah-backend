@@ -25,10 +25,6 @@ RUN npm i --no-optional &&\
 # production image
 FROM node:12-alpine
 
-LABEL name="bah-backend"
-LABEL description="Buttons Against Humanity Backend"
-LABEL maintainer="https://github.com/buttons-against-humanity"
-
 ENV NODE_ENV=production
 
 WORKDIR /app
@@ -42,7 +38,9 @@ EXPOSE 8080
 CMD [ "node", "build/main.js" ]
 
 # Metadata
-LABEL org.opencontainers.image.vendor="ButtonsAgainstHumanity" \
+LABEL name="bah-backend" \
+        description="Buttons Against Humanity Backend" \
+        org.opencontainers.image.vendor="ButtonsAgainstHumanity" \
         org.opencontainers.image.url="https://buttonsagainsthumanity.com/" \
         org.opencontainers.image.source="https://github.com/buttons-against-humanity/bah-backend" \
         org.opencontainers.image.title="bah-backend" \

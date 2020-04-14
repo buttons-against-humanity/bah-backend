@@ -1,7 +1,7 @@
 {
-  "name": "pcah-backend",
+  "name": "bah-backend",
   "version": "0.1.2",
-  "description": "Personal Cards Against Humanity",
+  "description": "Buttons Against Humanity",
   "main": "build/main.js",
   "private": true,
   "repository": "https://git.fluidware.it/pcah/pcah-backend.git",

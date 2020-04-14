@@ -17,6 +17,16 @@ export const ERRORS = {
   GAME_END: -1
 };
 
+const htmlToText = function(str) {
+  if (str.indexOf('<b>') < 0) {
+    return str;
+  }
+  if (str.indexOf('<small>') < 0) {
+    return str;
+  }
+  return str.substring(3, str.indexOf('</b>')) + ' ';
+};
+
 class Game {
   uuid;
 
@@ -186,12 +196,14 @@ class Game {
           text: false
         };
       }
-      let text = question.text;
+      let text = htmlToText(question.text);
       if (text.indexOf('_') < 0) {
-        text += `<strong>${answer.answer.text}</strong>`;
+        const answer_text = htmlToText(answer.answer.text);
+        text += `<strong>${answer_text}</strong>`;
       } else {
         if (question.numAnswers === 1) {
-          text = text.replace('_', ` <strong>${answer.answer.text}</strong> `);
+          const answer_text = htmlToText(answer.answer.text);
+          text = text.replace('_', ` <strong>${answer_text}</strong> `);
         } else if (question.numAnswers > 1) {
           for (let i = 0; i < question.numAnswers; i++) {
             text = text.replace('_', ` <strong>${answer.answer.text[i]}</strong> `);

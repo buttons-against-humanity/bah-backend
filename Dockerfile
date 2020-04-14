@@ -25,12 +25,9 @@ RUN npm i --no-optional &&\
 # production image
 FROM node:12-alpine
 
-LABEL name="hbbtv-cs-restart"
-LABEL description="HbbTV CS Restart"
-LABEL maintainer="technology.scc@skytv.it"
-
-ENV TZ=Europe/Rome
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+LABEL name="bah-backend"
+LABEL description="Buttons Against Humanity Backend"
+LABEL maintainer="https://github.com/buttons-against-humanity"
 
 ENV NODE_ENV=production
 

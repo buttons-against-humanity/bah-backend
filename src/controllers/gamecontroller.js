@@ -6,13 +6,20 @@ const kicker = {};
 
 const MAX_GAME_IDLE_TIME = Number(process.env.MAX_GAME_IDLE_TIME) || 3600000;
 
+const slackin = process.env.SLACKIN_URL;
+
 class GameController {
   logger;
 
   gameCleaner;
 
+  config = {};
+
   constructor(logger) {
     this.logger = logger;
+    if (slackin) {
+      this.config.slackin = slackin;
+    }
   }
 
   start(io) {
@@ -38,6 +45,7 @@ class GameController {
   }
 
   onConnection(socket) {
+    socket.emit('welcome', this.config);
     const onNextRound = game_uuid => {
       const round = games[game_uuid].nextRound();
       this.io.to(game_uuid).emit('round:start', round);

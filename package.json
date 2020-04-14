@@ -4,7 +4,7 @@
   "description": "Buttons Against Humanity",
   "main": "build/main.js",
   "private": true,
-  "repository": "https://git.fluidware.it/pcah/pcah-backend.git",
+  "repository": "https://github.com/buttons-against-humanity/bah-backend.git",
   "scripts": {
     "build": "babel -D src -d build",
     "build:dev": "babel -D --watch src --out-dir build",

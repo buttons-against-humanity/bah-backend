@@ -1,5 +1,7 @@
 # Buttons Against Humanity
 
+[![](https://images.microbadger.com/badges/version/buttonsagainsthumanity/bah-backend.svg)](https://microbadger.com/images/buttonsagainsthumanity/bah-backend "Get your own version badge on microbadger.com")
+
 [Play online](https://buttonsagainsthumanity.com/)
 
 ## Credit & Licensing

@@ -114,9 +114,10 @@ class GameController {
         delete kicker[pcah.player_uuid];
       }
     });
-    socket.on('game:create', owner => {
+    socket.on('game:create', data => {
+      const { owner, expansions } = data;
       this.logger.info('New game by %s!', owner);
-      const game = new Game();
+      const game = new Game(expansions);
       this.logger.info('Game ready', game.uuid);
       games[game.uuid] = game;
       socket.emit('game:created', game.uuid);

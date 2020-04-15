@@ -3,6 +3,7 @@ import http from 'http';
 import socketio from 'socket.io';
 import packageJson from '../package.json';
 import GameController from './controllers/gamecontroller';
+import api from './routes/api';
 
 class PCAHServer {
   logger;
@@ -33,6 +34,8 @@ class PCAHServer {
     this.app.get('/', function(req, res) {
       res.json({ name: packageJson.name, version: packageJson.version });
     });
+
+    this.app.use('/api', api);
 
     this.io.on('connection', socket => {
       this.gameController.onConnection(socket);

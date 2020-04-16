@@ -9,8 +9,9 @@ let logger;
 const shutdown = function() {
   if (server) {
     logger.info('Shutting down server...');
-    server.stop();
-    process.exit(0);
+    server.stop(() => {
+      process.exit(0);
+    });
   } else {
     logger.info('Shutting down...');
     return process.exit(0);
@@ -48,7 +49,7 @@ const setupLogger = function() {
     logParams.streams = [{ stream: process.stderr }];
   }
 
-  logParams.name = 'PCAH';
+  logParams.name = 'bah';
 
   logger = new Logger(logParams);
 

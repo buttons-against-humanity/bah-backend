@@ -1,9 +1,9 @@
 import express from 'express';
 import http from 'http';
-import socketio from 'socket.io';
 import packageJson from '../package.json';
 import GameController from './controllers/gamecontroller';
 import api from './routes/api';
+import { getIO } from './helpers/socketioHelper';
 
 class PCAHServer {
   logger;
@@ -12,8 +12,8 @@ class PCAHServer {
 
   constructor(logger) {
     this.app = express();
-    this.server = http.Server(this.app);
-    this.io = socketio(this.server);
+    this.server = http.createServer(this.app);
+    this.io = getIO(this.server);
     this.logger = logger;
     this.gameController = new GameController(logger);
   }
@@ -24,9 +24,14 @@ class PCAHServer {
     this.server.listen(Number(process.env.PORT) || 8080);
   }
 
-  stop() {
+  stop(next) {
     if (this.gameController) {
       this.gameController.stop();
+    }
+    if (this.server) {
+      this.server.close(next);
+    } else {
+      next();
     }
   }
 

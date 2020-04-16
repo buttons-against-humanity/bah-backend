@@ -15,7 +15,8 @@ const GAME_STATUS = {
 };
 
 export const ERRORS = {
-  GAME_END: -1
+  GAME_END: -1,
+  NO_MORE_QUESTIONS: -2
 };
 
 const htmlToText = function(str) {
@@ -47,10 +48,13 @@ class Game {
 
   rounds = 0;
 
+  max_rounds = 0;
+
   last_touch;
 
-  constructor(expansions = false) {
+  constructor(rounds, expansions = false) {
     this.uuid = uuid.v4();
+    this.max_rounds = rounds;
     this.status = GAME_STATUS.WAIT_FOR_PLAYER;
     this.deck = getDeck(expansions);
     this.players = [];
@@ -146,9 +150,17 @@ class Game {
 
   nextRound() {
     this.rounds++;
+    if (this.rounds > this.max_rounds) {
+      return false;
+    }
     this.setCzar();
     this.current_question++;
     const checkQuestion = () => {
+      if (this.current_question >= this.deck.questions.length - 1) {
+        const err = new Error('No more questions!');
+        err.error_code = ERRORS.NO_MORE_QUESTIONS;
+        throw err;
+      }
       return this.deck.questions[this.current_question].numAnswers < 2;
     };
     while (!checkQuestion()) {

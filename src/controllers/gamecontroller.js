@@ -37,15 +37,31 @@ class GameController {
 
     const onNextRound = game_uuid => {
       this.gameManager.get(game_uuid).then(game => {
-        const round = game.nextRound();
-        this.io.to(game_uuid).emit('round:start', round);
+        try {
+          const round = game.nextRound();
+          if (round === false) {
+            this.logger.info('Max round reached', game_uuid);
+            onEndGame(game_uuid);
+            return;
+          }
+          this.io.to(game_uuid).emit('round:start', round);
+        } catch (e) {
+          if (e.error_code) {
+            if (e.error_code === ERRORS.NO_MORE_QUESTIONS) {
+              this.logger.info('No more questions!', game_uuid);
+              onEndGame(game_uuid, 'No more questions');
+              return;
+            }
+          }
+          onEndGame(game_uuid, e.message);
+        }
       });
     };
 
-    const onEndGame = game_uuid => {
+    const onEndGame = (game_uuid, message = null) => {
       this.logger.info('Game ended', game_uuid);
       this.gameManager.delete(game_uuid).catch(err => this.logger.error('Faild to delete game', err.message));
-      this.io.to(game_uuid).emit('game:ended');
+      this.io.to(game_uuid).emit('game:ended', message);
     };
 
     const checkSocketStatus = async () => {
@@ -115,9 +131,9 @@ class GameController {
     });
 
     socket.on('game:create', async data => {
-      const { owner, expansions } = data;
-      this.logger.info('New game by %s!', owner);
-      const game = new Game(expansions);
+      const { owner, rounds, expansions } = data;
+      this.logger.info('New game with %s rounds by %s!', rounds, owner);
+      const game = new Game(rounds, expansions);
       this.logger.info('Game ready', game.uuid);
       await this.gameManager.add(game);
       socket.emit('game:created', game.uuid);

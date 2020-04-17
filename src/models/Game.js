@@ -155,6 +155,12 @@ class Game {
     }
     this.setCzar();
     this.current_question++;
+    if (this.current_question >= this.deck.questions.length - 1) {
+      const err = new Error('No more questions!');
+      err.error_code = ERRORS.NO_MORE_QUESTIONS;
+      throw err;
+    }
+    /*
     const checkQuestion = () => {
       if (this.current_question >= this.deck.questions.length - 1) {
         const err = new Error('No more questions!');
@@ -166,6 +172,7 @@ class Game {
     while (!checkQuestion()) {
       this.current_question++;
     }
+     */
     this.current_answers = [];
     const { uuid, name } = this.players[this.card_czar];
     return {
@@ -183,15 +190,18 @@ class Game {
       player_uuid,
       answer
     });
-    this.players.map(player => {
+    const question = this.deck.questions[this.current_question];
+    if (answer !== false && question.numAnswers !== answer.length) {
+      throw new Error('Invalid answer');
+    }
+    this.players.forEach(player => {
       if (player.uuid === player_uuid) {
-        player.removeCards(answer);
-        let cards_to_add = 1;
-        if (answer && typeof answer.length !== 'undefined') {
-          cards_to_add = answer.length;
+        for (let i = 0; i < question.numAnswers; i++) {
+          player.removeButtons(answer ? answer[i] : answer);
         }
-        const answers = this.deck.answers.splice(0, cards_to_add);
-        player.addCards(answers);
+        const buttons_to_add = question.numAnswers;
+        const answers = this.deck.answers.splice(0, buttons_to_add);
+        player.addButtons(answers);
       }
     });
   }
@@ -212,16 +222,12 @@ class Game {
       }
       let text = htmlToText(question.text);
       if (text.indexOf('_') < 0) {
-        const answer_text = htmlToText(answer.answer.text);
-        text += `<strong>${answer_text}</strong>`;
+        for (let i = 0; i < answer.answer.length; i++) {
+          text += `&nbsp<strong>${htmlToText(answer.answer[i].text)}</strong>`;
+        }
       } else {
-        if (question.numAnswers === 1) {
-          const answer_text = htmlToText(answer.answer.text);
-          text = text.replace('_', ` <strong>${answer_text}</strong> `);
-        } else if (question.numAnswers > 1) {
-          for (let i = 0; i < question.numAnswers; i++) {
-            text = text.replace('_', ` <strong>${answer.answer.text[i]}</strong> `);
-          }
+        for (let i = 0; i < answer.answer.length; i++) {
+          text = text.replace('_', ` <strong>${answer.answer[i].text}</strong> `);
         }
       }
 

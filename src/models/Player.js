@@ -26,26 +26,26 @@ class Player {
     this.active = active;
   }
 
-  addCards(cards) {
-    cards.forEach(card => {
-      this.answers.push(card);
+  addButtons(buttons) {
+    buttons.forEach(button => {
+      this.answers.push(button);
     });
   }
 
-  removeCards(cards) {
-    const removeRandom = typeof cards === 'boolean';
+  removeButtons(buttons) {
+    const removeRandom = typeof buttons === 'boolean';
     const pos = removeRandom ? Math.floor(Math.random() * this.answers.length) : -1;
-    this.answers = this.answers.filter((card, i) => {
+    this.answers = this.answers.filter((button, i) => {
       if (removeRandom) {
         if (i === pos) {
           return false;
         }
       }
-      if (typeof cards.length === 'undefined') {
-        return card.id !== cards.id;
+      if (typeof buttons.length === 'undefined') {
+        return button.id !== buttons.id;
       }
-      for (let i = 0; i < cards.length; i++) {
-        if (cards[i].id === card.id) {
+      for (let i = 0; i < buttons.length; i++) {
+        if (buttons[i].id === button.id) {
           return false;
         }
       }

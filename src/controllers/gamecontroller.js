@@ -194,9 +194,15 @@ class GameController {
         return;
       }
       const { player_uuid, game_uuid } = socket.bah;
-      this.logger.debug('Got %s answer: %s', player_uuid, answer);
+      this.logger.debug('Player %s answered: %s', player_uuid, answer);
       const game = await this.gameManager.get(game_uuid);
-      game.addAnswer(socket.bah.player_uuid, answer);
+      try {
+        game.addAnswer(socket.bah.player_uuid, answer);
+      } catch (e) {
+        socket.emit('error:round', e.message);
+        return;
+      }
+
       this.io.to(socket.bah.game_uuid).emit('round:answers_count', game.current_answers.length);
       socket.emit('player:update', game.getFullPlayerByUUID(player_uuid));
       if (game.haveAllAnswers()) {

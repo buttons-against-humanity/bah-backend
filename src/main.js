@@ -1,7 +1,8 @@
 import './appenv';
 import PCAHServer from './server';
 import Logger from 'bunyan';
-const { LOG_LEVEL, LOG_FILE } = process.env;
+import { loadDeck } from './models/Deck';
+const { LOG_LEVEL, LOG_FILE, COCKPIT_URL } = process.env;
 
 let server;
 let logger;
@@ -27,8 +28,9 @@ process.on('SIGTERM', shutdown);
 
 process.on('SIGINT', shutdown);
 
-const startServer = () => {
+const startServer = async () => {
   setupLogger();
+  await loadDeck(COCKPIT_URL);
   server = new PCAHServer(logger);
   server.start();
 };
@@ -56,4 +58,12 @@ const setupLogger = function() {
   logger.debug('Initializing');
 };
 
-startServer();
+if (!COCKPIT_URL) {
+  console.error('Missing required COCKPIT_URL env');
+  process.exit(1);
+}
+
+startServer().catch(e => {
+  logger.error('Unable to start server', e.message);
+  process.exit(2);
+});

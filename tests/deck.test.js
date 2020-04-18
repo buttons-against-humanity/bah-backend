@@ -1,7 +1,12 @@
 import assert from 'assert';
-import { getDeck } from '../src/models/Deck';
+import { loadDeck, getDeck } from '../src/models/Deck';
+
+const COCKPIT_URL = 'https://github.com/macno/json-against-humanity/raw/full-json/decks/full.json';
 
 describe('Deck test', () => {
+  before(() => {
+    return loadDeck(COCKPIT_URL);
+  });
   describe('getDeck() test', () => {
     it('should return a shuffled deck', () => {
       const deck1 = getDeck();

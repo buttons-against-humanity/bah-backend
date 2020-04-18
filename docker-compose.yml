@@ -1,20 +1,23 @@
 version: "3.7"
 
-# Create a .env file, this is an example (verify on https://hub.docker.com/u/buttonsagainsthumanity latest versions)
+# Create a .env file, you can use env.sample as en example.
+#
 # RESTART_MODE=unless-stopped
 # FQDN=pcah.example.com
-# BAH_BE_VERSION=0.2.3
-# BAH_FE_VERSION=0.2.2
+# COCKPIT_URL=https://github.com/macno/json-against-humanity/raw/full-json/decks/full.json
+
 
 services:
   be:
-    image: buttonsagainsthumanity/bah-backend:${BAH_BE_VERSION}
+    image: buttonsagainsthumanity/bah-backend
     restart: ${RESTART_MODE}
     labels:
       - traefik.enable=true
       - traefik.http.routers.be.rule=Host(`${FQDN}`) && Path(`/socket.io/`)
+    environment:
+      - COCKPIT_URL
   fe:
-    image: buttonsagainsthumanity/bah-frontend:${BAH_FE_VERSION}
+    image: buttonsagainsthumanity/bah-frontend
     restart: ${RESTART_MODE}
     labels:
       - traefik.enable=true

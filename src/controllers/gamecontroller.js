@@ -1,5 +1,6 @@
 import Game, { ERRORS } from '../models/Game';
 import { getGameManager } from '../helpers/gameHelper';
+import StatsManager from '../managers/StatsManager';
 
 const kicker = {};
 
@@ -33,6 +34,7 @@ class GameController {
   }
 
   onConnection(socket) {
+    StatsManager.addPlayer();
     socket.emit('welcome', this.config);
 
     const onNextRound = game_uuid => {
@@ -106,6 +108,7 @@ class GameController {
     };
 
     socket.on('disconnect', async () => {
+      StatsManager.removePlayer();
       this.logger.debug('socket disconnects');
       const statusOk = await checkSocketStatus();
       if (!statusOk) {
@@ -152,6 +155,7 @@ class GameController {
       if (!statusOk) {
         return;
       }
+      StatsManager.newGame();
       this.io.to(socket.bah.game_uuid).emit('game:started');
       const game = await this.gameManager.get(socket.bah.game_uuid);
       game.start();
@@ -165,6 +169,7 @@ class GameController {
         socket.emit('game:join_error', 'game not found');
         return;
       }
+
       try {
         const player = game.addPlayer(player_name);
         this.logger.info('%s joined a game!', player_name);

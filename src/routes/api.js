@@ -3,9 +3,19 @@ import decks from './decks';
 import packageJson from '../../package.json';
 import StatsManager from '../managers/StatsManager';
 
+const slackin = process.env.SLACKIN_URL;
+
 const router = express.Router();
 
 const uptime_start = Date.now();
+
+router.get('/config', function(req, res) {
+  const config = {};
+  if (slackin) {
+    config.slackin = slackin;
+  }
+  res.json(config);
+});
 
 router.get('/uptime', function(req, res) {
   const { name, version } = packageJson;

@@ -1,15 +1,12 @@
 import Game, { ERRORS } from '../models/Game';
 import { getGameManager } from '../helpers/gameHelper';
 import StatsManager from '../managers/StatsManager';
+import { getRandomName } from '../utils/namesGenerator';
 
 const kicker = {};
 
-const slackin = process.env.SLACKIN_URL;
-
 class GameController {
   logger;
-
-  config = {};
 
   /**
    * GameManager
@@ -18,9 +15,6 @@ class GameController {
 
   constructor(logger) {
     this.logger = logger;
-    if (slackin) {
-      this.config.slackin = slackin;
-    }
     this.gameManager = getGameManager();
   }
 
@@ -35,8 +29,6 @@ class GameController {
 
   onConnection(socket) {
     StatsManager.addPlayer();
-    socket.emit('welcome', this.config);
-
     const onNextRound = game_uuid => {
       this.gameManager.get(game_uuid).then(game => {
         try {
@@ -136,7 +128,16 @@ class GameController {
     socket.on('game:create', async data => {
       const { owner, rounds, expansions } = data;
       this.logger.info('New game with %s rounds by %s!', rounds, owner);
-      const game = new Game(rounds, expansions);
+      const checkName = async () => {
+        const name = getRandomName();
+        const exists = await this.gameManager.exists(name);
+        if (exists) {
+          return checkName();
+        }
+        return name;
+      };
+      const name = await checkName();
+      const game = new Game(name, rounds, expansions);
       this.logger.info('Game ready', game.uuid);
       await this.gameManager.add(game);
       socket.emit('game:created', game.uuid);
@@ -164,8 +165,10 @@ class GameController {
 
     socket.on('game:join', async data => {
       const { game_uuid, player_name } = data;
+      this.logger.debug('game:join attempt', game_uuid, player_name);
       const game = await this.gameManager.get(game_uuid);
       if (!game) {
+        this.logger.debug('game:join_error: game not found');
         socket.emit('game:join_error', 'game not found');
         return;
       }

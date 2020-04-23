@@ -1,4 +1,3 @@
-import uuid from 'uuid';
 import { getDeck } from './Deck';
 import Player from './Player';
 import { arrayShuffle } from '../utils/arrayUtils';
@@ -52,8 +51,8 @@ class Game {
 
   last_touch;
 
-  constructor(rounds, expansions = false) {
-    this.uuid = uuid.v4();
+  constructor(name, rounds, expansions = false) {
+    this.uuid = name; // uuid.v4();
     this.max_rounds = rounds;
     this.status = GAME_STATUS.WAIT_FOR_PLAYER;
     this.deck = getDeck(expansions);

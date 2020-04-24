@@ -145,6 +145,9 @@ class Game {
     if (this.card_czar >= this.getActivePlayers().length) {
       this.card_czar = 0;
     }
+    if (!this.players[this.card_czar].isActive()) {
+      this.setCzar();
+    }
   }
 
   nextRound() {

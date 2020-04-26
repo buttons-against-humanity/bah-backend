@@ -1,4 +1,10 @@
 export class GameManager {
+  logger;
+
+  constructor(logger) {
+    this.logger = logger;
+  }
+
   async add(game) {}
 
   async delete(game_uuid) {}

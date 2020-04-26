@@ -91,7 +91,11 @@ class Game {
   }
 
   getPlayerByUUID(player_uuid) {
-    return this.players.filter(player => player.uuid === player_uuid)[0].name;
+    const player = this.players.filter(player => player.uuid === player_uuid)[0];
+    return {
+      name: player.name,
+      uuid: player.uuid
+    };
   }
 
   getFullPlayerByUUID(player_uuid) {

@@ -2,6 +2,7 @@ import './appenv';
 import PCAHServer from './server';
 import Logger from 'bunyan';
 import { loadDeck } from './models/Deck';
+import { initGameManager } from './helpers/gameHelper';
 const { LOG_LEVEL, LOG_FILE, COCKPIT_URL } = process.env;
 
 let server;
@@ -30,6 +31,7 @@ process.on('SIGINT', shutdown);
 
 const startServer = async () => {
   setupLogger();
+  initGameManager(logger);
   await loadDeck(COCKPIT_URL);
   server = new PCAHServer(logger);
   server.start();

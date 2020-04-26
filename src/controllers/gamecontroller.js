@@ -79,7 +79,7 @@ class GameController {
       }
       this.logger.info('Player %s left', bah.player_uuid);
       const game = await this.gameManager.get(game_uuid);
-      this.io.to(game_uuid).emit('player:left', game.getPlayerByUUID(bah.player_uuid));
+      this.io.to(game_uuid).emit('player:left', game.getPlayerByUUID(bah.player_uuid).name);
       try {
         const { owner_changed, change_czar } = game.removePlayer(bah.player_uuid);
         if (owner_changed) {
@@ -202,8 +202,9 @@ class GameController {
         return;
       }
       const { player_uuid, game_uuid } = socket.bah;
-      this.logger.debug('Player %s answered: %s', player_uuid, answer);
       const game = await this.gameManager.get(game_uuid);
+      this.logger.debug('[%s] Player %s answered', game_uuid, player_uuid);
+
       try {
         game.addAnswer(socket.bah.player_uuid, answer);
       } catch (e) {
@@ -214,7 +215,7 @@ class GameController {
       this.io.to(socket.bah.game_uuid).emit('round:answers_count', game.current_answers.length);
       socket.emit('player:update', game.getFullPlayerByUUID(player_uuid));
       if (game.haveAllAnswers()) {
-        this.logger.debug('Round end, answers', game.getAnswers());
+        this.logger.debug('[%s] Round end', game_uuid);
         this.io.to(game_uuid).emit('round:answers', game.getAnswers());
       }
     });
@@ -229,7 +230,7 @@ class GameController {
       if (answer) {
         game.addPoint(answer.player_uuid);
       }
-      this.io.to(socket.bah.game_uuid).emit('round:start');
+      // this.io.to(socket.bah.game_uuid).emit('round:start');
       this.io.to(socket.bah.game_uuid).emit('game:players', game.getPlayers());
       if (answer) {
         this.io.to(socket.bah.game_uuid).emit('round:winner', {

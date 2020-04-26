@@ -51,6 +51,8 @@ class Game {
 
   last_touch;
 
+  playoff = false;
+
   constructor(name, rounds, expansions = false) {
     this.uuid = name; // uuid.v4();
     this.max_rounds = rounds;
@@ -110,6 +112,11 @@ class Game {
         player.setActive(false);
       }
     });
+    if (this.playoff) {
+      const error = new Error('Player left during playoff');
+      error.error_code = ERRORS.GAME_END;
+      throw error;
+    }
     if (this.status >= GAME_STATUS.STARTED && this.getActivePlayers().length < MIN_PLAYERS) {
       const error = new Error('There are too few players! Game ends');
       error.error_code = ERRORS.GAME_END;
@@ -150,41 +157,90 @@ class Game {
     }
   }
 
-  nextRound() {
-    this.rounds++;
-    if (this.rounds > this.max_rounds) {
+  _getLeaderBoard() {
+    return this.players
+      .filter(p => p.isActive())
+      .sort((a, b) => {
+        if (a.points > b.points) return -1;
+        if (a.points < b.points) return 1;
+        return 0;
+      });
+  }
+
+  getPlayoff(players) {
+    const points = players[0].points;
+    let allSamePoints = true;
+    const playoff = {
+      players: [],
+      czar: null
+    };
+    for (let i = 0; i < players.length; i++) {
+      if (points !== players[i].points) {
+        allSamePoints = false;
+        playoff.czar = {
+          uuid: players[i].uuid,
+          name: players[i].name
+        };
+        break;
+      }
+      playoff.players.push(players[i].uuid);
+    }
+    if (allSamePoints) {
       return false;
     }
-    this.setCzar();
+    return playoff;
+  }
+
+  needPlayOff() {
+    const players = this._getLeaderBoard();
+    if (players[0].points > players[1].points) {
+      return false;
+    }
+    const playoff = this.getPlayoff(players);
+    if (playoff === false) {
+      return playoff;
+    }
+
+    return playoff;
+  }
+
+  nextRound() {
+    this.rounds++;
+    let playoff;
+    if (this.rounds > this.max_rounds) {
+      playoff = this.needPlayOff();
+      if (playoff === false) {
+        return false;
+      }
+    } else {
+      this.setCzar();
+    }
     this.current_question++;
     if (this.current_question >= this.deck.questions.length - 1) {
       const err = new Error('No more questions!');
       err.error_code = ERRORS.NO_MORE_QUESTIONS;
       throw err;
     }
-    /*
-    const checkQuestion = () => {
-      if (this.current_question >= this.deck.questions.length - 1) {
-        const err = new Error('No more questions!');
-        err.error_code = ERRORS.NO_MORE_QUESTIONS;
-        throw err;
-      }
-      return this.deck.questions[this.current_question].numAnswers < 2;
-    };
-    while (!checkQuestion()) {
-      this.current_question++;
-    }
-     */
     this.current_answers = [];
-    const { uuid, name } = this.players[this.card_czar];
-    return {
-      n: this.rounds,
-      question: this.deck.questions[this.current_question],
-      card_czar: {
-        uuid,
-        name
-      }
-    };
+    if (!playoff) {
+      const { uuid, name } = this.players[this.card_czar];
+      return {
+        n: this.rounds,
+        question: this.deck.questions[this.current_question],
+        card_czar: {
+          uuid,
+          name
+        }
+      };
+    } else {
+      this.playoff = playoff;
+      return {
+        n: -999,
+        question: this.deck.questions[this.current_question],
+        players: playoff.players,
+        card_czar: playoff.czar
+      };
+    }
   }
 
   addAnswer(player_uuid, answer) {
@@ -209,7 +265,10 @@ class Game {
   }
 
   haveAllAnswers() {
-    return this.current_answers.length === this.players.filter(player => player.isActive()).length - 1;
+    if (!this.playoff) {
+      return this.current_answers.length === this.players.filter(player => player.isActive()).length - 1;
+    }
+    return this.current_answers.length === this.playoff.players.length;
   }
 
   getAnswers() {

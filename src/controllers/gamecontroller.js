@@ -157,9 +157,9 @@ class GameController {
         return;
       }
       StatsManager.newGame();
-      this.io.to(socket.bah.game_uuid).emit('game:started');
       const game = await this.gameManager.get(socket.bah.game_uuid);
       game.start();
+      this.io.to(socket.bah.game_uuid).emit('game:started', { rounds: game.max_rounds });
       onNextRound(socket.bah.game_uuid);
     });
 

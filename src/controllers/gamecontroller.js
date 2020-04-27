@@ -32,7 +32,9 @@ class GameController {
     const onNextRound = game_uuid => {
       this.gameManager.get(game_uuid).then(game => {
         try {
-          const round = game.nextRound();
+          const round = game.nextRound(() => {
+            this.io.to(socket.bah.game_uuid).emit('game:players', game.getPlayers());
+          });
           if (round === false) {
             this.logger.info('Max round reached', game_uuid);
             onEndGame(game_uuid);
@@ -193,7 +195,11 @@ class GameController {
       if (!checkSocketStatus()) {
         return;
       }
-      onEndGame(socket.bah.game_uuid);
+      try {
+        onEndGame(socket.bah.game_uuid);
+      } catch (e) {
+        this.logger.error('Failed to call onEndGame', e.message);
+      }
     });
 
     socket.on('round:answer', async answer => {

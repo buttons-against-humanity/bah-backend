@@ -1,5 +1,5 @@
 import { getDeck } from './Deck';
-import Player from './Player';
+import Player, { PLAYER_STATUS } from './Player';
 import { arrayShuffle } from '../utils/arrayUtils';
 
 const MIN_PLAYERS = 3;
@@ -67,14 +67,17 @@ class Game {
   }
 
   addPlayer(player_name) {
-    if (this.status !== GAME_STATUS.WAIT_FOR_PLAYER) {
-      throw new Error('Could not add player at this time');
-    }
     if (this.players.length >= MAX_PLAYERS) {
       throw new Error('Too many players');
     }
+    if (this.playoff) {
+      throw new Error('Game is finished');
+    }
     const player = new Player(player_name);
     player.answers = this.deck.answers.splice(0, CARDS_FOR_PLAYER);
+    if (this.status > GAME_STATUS.WAIT_FOR_PLAYER) {
+      player.setActive(PLAYER_STATUS.WAITING);
+    }
     this.players.push(player);
     return player;
   }
@@ -113,7 +116,7 @@ class Game {
         if (this.owner.uuid === player_uuid) {
           change_owner = true;
         }
-        player.setActive(false);
+        player.setActive(PLAYER_STATUS.INACTIVE);
       }
     });
     if (this.playoff) {
@@ -208,7 +211,7 @@ class Game {
     return playoff;
   }
 
-  nextRound() {
+  nextRound(onPlayerChanged) {
     this.rounds++;
     let playoff;
     if (this.rounds > this.max_rounds) {
@@ -217,6 +220,16 @@ class Game {
         return false;
       }
     } else {
+      let players_changed = false;
+      this.players.forEach(player => {
+        if (player.isWaiting()) {
+          players_changed = true;
+          player.setActive(PLAYER_STATUS.ACTIVE);
+        }
+      });
+      if (players_changed) {
+        onPlayerChanged();
+      }
       this.setCzar();
     }
     this.current_question++;

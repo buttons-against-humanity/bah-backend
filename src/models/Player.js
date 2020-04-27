@@ -1,5 +1,10 @@
 import uuid from 'uuid';
 
+export const PLAYER_STATUS = {
+  ACTIVE: 1,
+  INACTIVE: 0,
+  WAITING: -1
+};
 class Player {
   uuid;
 
@@ -15,11 +20,15 @@ class Player {
     this.uuid = uuid.v4();
     this.name = name;
     this.points = 0;
-    this.active = true;
+    this.active = PLAYER_STATUS.ACTIVE;
   }
 
   isActive() {
-    return this.active;
+    return this.active === PLAYER_STATUS.ACTIVE;
+  }
+
+  isWaiting() {
+    return this.active === PLAYER_STATUS.WAITING;
   }
 
   setActive(active) {

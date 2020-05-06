@@ -56,7 +56,7 @@ class GameController {
 
     const onEndGame = (game_uuid, message = null) => {
       this.logger.info('Game ended', game_uuid);
-      this.gameManager.delete(game_uuid).catch(err => this.logger.error('Faild to delete game', err.message));
+      this.gameManager.delete(game_uuid).catch(err => this.logger.error('Failed to delete game', err.message));
       this.io.to(game_uuid).emit('game:ended', message);
     };
 

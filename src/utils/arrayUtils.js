@@ -25,6 +25,7 @@ export const arrayShuffle = function(array) {
 };
 
 export const randomIntFromInterval = function(min, max) {
-  // min and max included
-  return Math.floor(Math.random() * (max - min + 1) + min);
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
 };

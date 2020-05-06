@@ -833,7 +833,7 @@ const right = [
 ];
 
 export const getRandomName = function() {
-  const sleft = left[randomIntFromInterval(0, left.length - 1)];
-  const sright = right[randomIntFromInterval(0, right.length - 1)];
+  const sleft = left[randomIntFromInterval(0, left.length)];
+  const sright = right[randomIntFromInterval(0, right.length)];
   return camelcase(`${sleft}_${sright}`, { pascalCase: true });
 };

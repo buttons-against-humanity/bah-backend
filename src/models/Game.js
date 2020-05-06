@@ -1,6 +1,6 @@
 import { getDeck } from './Deck';
 import Player, { PLAYER_STATUS } from './Player';
-import { arrayShuffle } from '../utils/arrayUtils';
+import { arrayShuffle, randomIntFromInterval } from '../utils/arrayUtils';
 
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 80;
@@ -150,7 +150,7 @@ class Game {
 
   start() {
     this.status = GAME_STATUS.STARTED;
-    this.card_czar = 0;
+    this.card_czar = randomIntFromInterval(0, this.getActivePlayers().length);
     this.current_question = -1;
   }
 

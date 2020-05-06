@@ -156,7 +156,7 @@ class Game {
 
   setCzar() {
     this.card_czar++;
-    if (this.card_czar >= this.getActivePlayers().length) {
+    if (this.card_czar >= this.players.length) {
       this.card_czar = 0;
     }
     if (!this.players[this.card_czar].isActive()) {

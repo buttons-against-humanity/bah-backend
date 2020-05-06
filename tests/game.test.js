@@ -2,6 +2,169 @@ import assert from 'assert';
 import Game from '../src/models/Game';
 
 describe('Game test', () => {
+  describe('setCzar() test', () => {
+    it('should set the next czar', () => {
+      const game = new Game('test', 1);
+      game.card_czar = 0;
+      game.players = [
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        }
+      ];
+      game.setCzar();
+      assert.strictEqual(game.card_czar, 1);
+    });
+    it('should set the next czar (back to 0)', () => {
+      const game = new Game('test', 1);
+      game.card_czar = 3;
+      game.players = [
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        }
+      ];
+      game.setCzar();
+      assert.strictEqual(game.card_czar, 0);
+    });
+    it('should set the next czar (skipping non-active)', () => {
+      const game = new Game('test', 1);
+      game.card_czar = 2;
+      game.players = [
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return false;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        }
+      ];
+      game.setCzar();
+      assert.strictEqual(game.card_czar, 3);
+    });
+
+    it('should set the next czar (skipping 2 non-active)', () => {
+      const game = new Game('test', 1);
+      game.card_czar = 0;
+      game.players = [
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return false;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return false;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        }
+      ];
+      game.setCzar();
+      assert.strictEqual(game.card_czar, 3);
+    });
+    it('should set the next czar (skipping first non-active)', () => {
+      const game = new Game('test', 1);
+      game.card_czar = 3;
+      game.players = [
+        {
+          points: 10,
+          isActive() {
+            return false;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        },
+        {
+          points: 10,
+          isActive() {
+            return true;
+          }
+        }
+      ];
+      game.setCzar();
+      assert.strictEqual(game.card_czar, 1);
+    });
+  });
   describe('needPlayOff() test', () => {
     it('should return no playoff (all players with the same points)', () => {
       const game = new Game('test', 1);

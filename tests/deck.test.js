@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { loadDeck, getDeck } from '../src/models/Deck';
 
-const COCKPIT_URL = 'https://github.com/macno/json-against-humanity/raw/full-json/decks/full.json';
+const COCKPIT_URL = 'https://buttons-against-humanity.github.io/decks/full.json';
 
 describe('Deck test', () => {
   before(() => {
@@ -26,7 +26,7 @@ describe('Deck test', () => {
     });
 
     it('should return a shuffled deck from 1 expansion', () => {
-      const expansion = '[C] Mr. Man Collection';
+      const expansion = 'en-c-mrman';
       const deck1 = getDeck([expansion]);
       deck1.questions.forEach(question => {
         assert.strictEqual(
@@ -45,8 +45,8 @@ describe('Deck test', () => {
     });
 
     it('should return a shuffled deck from 2 expansions', () => {
-      const expansion1 = '[C] Mr. Man Collection';
-      const expansion2 = 'Reject Pack 2';
+      const expansion1 = 'en-c-mrman';
+      const expansion2 = 'en-reject2';
 
       const deck1 = getDeck([expansion1, expansion2]);
 

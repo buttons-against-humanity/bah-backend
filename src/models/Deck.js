@@ -31,6 +31,17 @@ export const loadDeck = async function(url) {
     .then(json => parseDeck(json));
 };
 
+export const reLoadDeck = async function(url) {
+  return fetch(url)
+    .then(res => res.json())
+    .then(json => {
+      _questions.length = 0;
+      _answers.length = 0;
+      Object.keys(_expansions).forEach(k => delete _expansions[k]);
+      parseDeck(json);
+    });
+};
+
 export const getExpansions = function() {
   return _expansions;
 };

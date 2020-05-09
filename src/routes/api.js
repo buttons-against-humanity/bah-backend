@@ -1,5 +1,5 @@
 import express from 'express';
-import decks from './decks';
+import cockpit from './cockpit';
 import packageJson from '../../package.json';
 import StatsManager from '../managers/StatsManager';
 
@@ -33,6 +33,6 @@ router.get('/uptime', function(req, res) {
   res.json(ret);
 });
 
-router.use('/cockpit', decks);
+router.use('/cockpit', cockpit);
 
 export default router;

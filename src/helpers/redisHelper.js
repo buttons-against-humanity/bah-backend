@@ -1,6 +1,8 @@
+import redis from 'redis';
+
 const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_OPTS } = process.env;
 
-export const getRedisOpts = function() {
+const getRedisOpts = function() {
   const opts = {
     host: REDIS_HOST || 'localhost',
     port: Number(REDIS_PORT) || 6379
@@ -15,4 +17,8 @@ export const getRedisOpts = function() {
     });
   }
   return opts;
+};
+
+export const getRedis = function() {
+  return redis.createClient(getRedisOpts());
 };

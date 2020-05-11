@@ -23,10 +23,11 @@ const parseDeck = function(_deck) {
       a
     };
     deck.questions.forEach(question => {
+      const numAnswers = question.split('_').length - 1;
       _questions.push({
         text: question,
         cardType: 'Q',
-        numAnswers: question.split('_').length - 1,
+        numAnswers: numAnswers < 1 ? 1 : numAnswers,
         id,
         expansion: deck.code
       });

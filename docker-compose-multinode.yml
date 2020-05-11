@@ -3,8 +3,16 @@ version: "3.7"
 # Create a .env file, you can use env.sample as en example.
 #
 # RESTART_MODE=unless-stopped
-# FQDN=bah.example.com
+# FQDN=pcah.example.com
 # COCKPIT_URL=https://buttons-against-humanity.github.io/decks/full.json
+# MULTI_NODE=1
+# STICKY_COOKIE=bah-sticky
+# REDIS_HOST=cache
+# REDIS_PORT=6379
+# REDIS_OPTS={"socket_keepalive":false}
+
+# To start multi-node backend
+# docker-compose -f docker-compose-multinode.yml up --scale be=3 -d
 
 services:
   be:
@@ -14,15 +22,26 @@ services:
       - traefik.enable=true
       - traefik.http.routers.be.rule=Host(`${FQDN}`) && PathPrefix(`/socket.io/`, `/api`)
       - traefik.http.services.be.loadbalancer.server.port=8080
+      - traefik.http.services.be.loadbalancer.sticky=true
+      - traefik.http.services.be.loadbalancer.sticky.cookie.name=${STICKY_COOKIE}
+      - traefik.http.services.be.loadbalancer.sticky.cookie.httpOnly=true
     environment:
       - COCKPIT_URL
+      - MULTI_NODE
+      - STICKY_COOKIE
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_OPTS
   fe:
     image: buttonsagainsthumanity/bah-frontend
     restart: ${RESTART_MODE}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.fe.rule=Host(`${FQDN}`)
+      - traefik.http.routers.fe.rule=Host(`${FQDN}`) && PathPrefix(`/`)
       - traefik.http.services.fe.loadbalancer.server.port=8080
+  cache:
+    image: redis:6
+    restart: ${RESTART_MODE}
   traefik:
     image: traefik:v2.2
     restart: ${RESTART_MODE}
@@ -31,6 +50,6 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
     ports:
-      - "80:80"
+      - 80:80
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"

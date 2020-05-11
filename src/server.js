@@ -4,11 +4,18 @@ import packageJson from '../package.json';
 import GameController from './controllers/gamecontroller';
 import api from './routes/api';
 import { getIO } from './helpers/socketioHelper';
+import MultiNodeHelper from './helpers/multiNodeHelper';
+import cookieParser from 'cookie-parser';
+import uuid from 'uuid';
 
 class PCAHServer {
   logger;
 
   gameController;
+
+  static getPort() {
+    return Number(process.env.PORT) || 8080;
+  }
 
   constructor(logger) {
     this.app = express();
@@ -21,7 +28,7 @@ class PCAHServer {
   start() {
     this.setup();
     this.gameController.start(this.io);
-    this.server.listen(Number(process.env.PORT) || 8080);
+    this.server.listen(PCAHServer.getPort());
   }
 
   stop(next) {
@@ -36,6 +43,14 @@ class PCAHServer {
   }
 
   setup() {
+    this.app.set('trust proxy', true);
+    this.app.use((req, res, next) => {
+      req.log = this.logger.child({ id: uuid.v4(), url: req.originalUrl, userAgent: req.get('user-agent') });
+      next();
+    });
+    if (MultiNodeHelper.isMultiNode()) {
+      this.app.use(cookieParser());
+    }
     this.app.get('/', function(req, res) {
       res.json({ name: packageJson.name, version: packageJson.version });
     });

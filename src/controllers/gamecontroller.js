@@ -2,6 +2,7 @@ import Game, { ERRORS } from '../models/Game';
 import { getGameManager } from '../helpers/gameHelper';
 import StatsManager from '../managers/StatsManager';
 import { getRandomName } from '../utils/namesGenerator';
+import MultiNodeHelper from '../helpers/multiNodeHelper';
 
 const kicker = {};
 
@@ -58,6 +59,7 @@ class GameController {
       this.logger.info('Game ended', game_uuid);
       this.gameManager.delete(game_uuid).catch(err => this.logger.error('Failed to delete game', err.message));
       this.io.to(game_uuid).emit('game:ended', message);
+      MultiNodeHelper.clearGame(game_uuid).finally();
     };
 
     const checkSocketStatus = async () => {
@@ -151,6 +153,14 @@ class GameController {
         game_uuid: game.uuid,
         player_uuid: player.uuid
       };
+      MultiNodeHelper.storeGame(socket.request, game.uuid)
+        .then(node => {
+          if (!node) return;
+          console.log('Game %s forward to %s ', game.uuid, node);
+        })
+        .catch(e => {
+          console.error('Unable to save %s forward', game.uuid, e.message);
+        });
     });
 
     socket.on('game:start', async () => {

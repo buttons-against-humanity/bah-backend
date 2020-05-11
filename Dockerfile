@@ -19,7 +19,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm i --no-optional &&\
+RUN npm ci --no-optional &&\
     npm cache clean --force
 
 # production image

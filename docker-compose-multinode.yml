@@ -26,6 +26,7 @@ services:
       - traefik.http.services.be.loadbalancer.sticky.cookie.name=${STICKY_COOKIE}
       - traefik.http.services.be.loadbalancer.sticky.cookie.httpOnly=true
     environment:
+      - SLACKIN_URL
       - COCKPIT_URL
       - MULTI_NODE
       - STICKY_COOKIE

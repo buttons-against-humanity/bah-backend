@@ -29,7 +29,7 @@
     "express": "^4.17.1",
     "node-fetch": "^2.6.0",
     "redis": "^3.0.2",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "socket.io-redis": "^5.2.0",
     "uuid": "^3.4.0"
   },
